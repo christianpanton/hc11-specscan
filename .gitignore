@@ -1,0 +1,10 @@
+*.ihx 
+*.lk 
+*.map 
+*.lst 
+*.sym 
+*.asm 
+*.rst 
+*.rel
+recv.py
+
