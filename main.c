@@ -18,7 +18,7 @@
 
 #define MAX_CHANNELS              50
 #define RX_BUFFER_SIZE            20
-#define RSSI_VALID_DELAY           5
+#define INIT_RSSI_VALID_DELAY      5
 
 #define MESSAGE_ACK             0x01
 #define MESSAGE_NACK            0x02
@@ -32,8 +32,10 @@
 #define COMMAND_SET_CHAN        0x02
 #define COMMAND_SET_BANDWIDTH   0x03
 #define COMMAND_SET_THRESHOLD   0x04
+#define COMMAND_SET_RSSI_DELAY  0x05
 
 #define COMMAND_CALIBRATE       0x11
+#define COMMAND_RESET           0x12
 
 #define COMMAND_GET_VERSION     0x21
 #define COMMAND_GET_STORED_RSSI 0x22
@@ -46,6 +48,7 @@ unsigned char rx_buffer[RX_BUFFER_SIZE];
 unsigned char rx_buffer_pos = 0;
 unsigned char threshold = 0;
 unsigned char mode = MODE_IDLE;
+unsigned char rssi_valid_delay = INIT_RSSI_VALID_DELAY;
 
 typedef struct {
     unsigned int freq2;
@@ -197,7 +200,7 @@ void setup_channel(long freq, unsigned int ch){
     spi_strobe(CC1101_SRX);
 
     // wait for calibration
-    delay(RSSI_VALID_DELAY);
+    delay(rssi_valid_delay);
 
     // store frequency/calibration settings
     chan_table[ch].freq2 = spi_read_config_register(CC1101_FREQ2);
@@ -227,7 +230,7 @@ unsigned char get_rssi(unsigned char ch){
     spi_write_config_register(CC1101_FSCAL1, chan_table[ch].fscal1);
     
     spi_strobe(CC1101_SRX);
-    delay(RSSI_VALID_DELAY);
+    delay(rssi_valid_delay);
     rssi = spi_read_status_register(CC1101_RSSI) ^ 0x80;
     spi_strobe(CC1101_SIDLE);
     return rssi;
@@ -356,6 +359,13 @@ void parse_uart_rx(){
                 uart_write("\r\n");
                 break;
 
+            case COMMAND_RESET: 
+                init_spi();
+                init_channels();
+                uart_write_hexbyte(MESSAGE_ACK);
+                uart_write("\r\n");
+                break;
+
             case COMMAND_SET_MODE: 
                 mode = hex2char(rx_buffer, 2);
                 uart_write_hexbyte(MESSAGE_ACK);
@@ -365,6 +375,12 @@ void parse_uart_rx(){
             case COMMAND_SET_BANDWIDTH: 
                 bandwidth = hex2char(rx_buffer, 2);
                 set_bandwidth(bandwidth);
+                uart_write_hexbyte(MESSAGE_ACK);
+                uart_write("\r\n");
+                break;
+
+            case COMMAND_SET_RSSI_DELAY:
+                rssi_valid_delay = hex2char(rx_buffer, 2);
                 uart_write_hexbyte(MESSAGE_ACK);
                 uart_write("\r\n");
                 break;
