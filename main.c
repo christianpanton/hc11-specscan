@@ -18,7 +18,7 @@
 
 #define MAX_CHANNELS              50
 #define RX_BUFFER_SIZE            20
-#define INIT_RSSI_VALID_DELAY      5
+#define INIT_RSSI_VALID_DELAY     10
 
 #define MESSAGE_ACK             0x01
 #define MESSAGE_NACK            0x02
@@ -67,7 +67,7 @@ void parse_uart_rx();
 void delay(unsigned long count){
     unsigned long i; 
     for(;count > 0; count--){
-        for(i = 0; i < 1000; i++) { 
+        for(i = 0; i < 100; i++) { 
             __asm__("nop");
         }
     }    
@@ -168,8 +168,8 @@ unsigned char spi_write_config_register(unsigned char addr, unsigned char value)
 void spi_reset(){
     // CC1101 reset sequence
 
-    bit_clear(PD_ODR, SS_PIND); delay(1); // toggle SS
-    bit_set(PD_ODR, SS_PIND);   delay(1);
+    bit_clear(PD_ODR, SS_PIND); delay(10); // toggle SS
+    bit_set(PD_ODR, SS_PIND);   delay(10);
 
     bit_clear(PD_ODR, SS_PIND);          // begin SPI
     while(bit_check(PC_IDR, MISO_PINC)); // wait for SO to go low
