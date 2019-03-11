@@ -10,7 +10,7 @@ OBJECT=main.ihx
 all: $(OBJECT)
 
 clean:
-	rm -f $(OBJECT) *.lk *.map *.lst *.sym *.asm *.rst *.rel
+	rm -f $(OBJECT) *.lk *.map *.lst *.sym *.asm *.rst *.rel *.cdb
 
 flash: $(OBJECT)
 	$(FLASHPATH)/stm8flash -cstlinkv2 -pstm8s003 -w $(OBJECT)
